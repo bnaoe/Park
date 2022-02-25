@@ -12,11 +12,14 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using ParkAPI.Data;
 using ParkAPI.Mapper;
 using ParkAPI.Repository;
 using ParkAPI.Repository.IRepository;
+using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace ParkAPI
 {
@@ -38,23 +41,43 @@ namespace ParkAPI
             services.AddScoped<ITrailRepository, TrailRepository>();
 
             services.AddAutoMapper(typeof(ParkMappings));
-            services.AddSwaggerGen(options =>
+
+            services.AddApiVersioning(options =>
             {
-                options.SwaggerDoc("ParkOpenAPISpec",
-                    new Microsoft.OpenApi.Models.OpenApiInfo()
-                    {
-                        Title = "Park API",
-                        Version = "1"
-                    });
-                var xmlCommentFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-                var cmlCommentsFullPath = Path.Combine(AppContext.BaseDirectory, xmlCommentFile);
-                options.IncludeXmlComments(cmlCommentsFullPath);
+                options.AssumeDefaultVersionWhenUnspecified = true;
+                options.DefaultApiVersion = new ApiVersion(1, 0);
+                options.ReportApiVersions = true;
             });
+
+            services.AddVersionedApiExplorer(options => options.GroupNameFormat = "'v'VVV");
+            services.AddTransient <IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
+            services.AddSwaggerGen();
+
+                //services.AddSwaggerGen(options =>
+                //{
+                //    options.SwaggerDoc("ParkOpenAPISpec",
+                //        new Microsoft.OpenApi.Models.OpenApiInfo()
+                //        {
+                //            Title = "Park API",
+                //            Version = "1",
+                //            Contact = new Microsoft.OpenApi.Models.OpenApiContact()
+                //            {
+                //                Email = "brian.naoe01@gmail.com",
+                //                Name = "Brian Naoe"
+
+                //            }
+                //        });
+
+
+                //    var xmlCommentFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                //    var cmlCommentsFullPath = Path.Combine(AppContext.BaseDirectory, xmlCommentFile);
+                //    options.IncludeXmlComments(cmlCommentsFullPath);
+                //});
             services.AddControllers();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IApiVersionDescriptionProvider provider)
         {
             if (env.IsDevelopment())
             {
@@ -64,12 +87,25 @@ namespace ParkAPI
             app.UseHttpsRedirection();
 
             app.UseSwagger();
-
             app.UseSwaggerUI(options =>
             {
-                options.SwaggerEndpoint("/swagger/ParkOpenAPISpec/swagger.json","Park API");
-                options.RoutePrefix = "";
+                foreach (var desc in provider.ApiVersionDescriptions)
+                {
+                    options.SwaggerEndpoint($"/swagger/{desc.GroupName}/swagger.json",
+                        desc.GroupName.ToUpper());
+                    options.RoutePrefix = "";
+                }
+                    
+                
             });
+
+            //app.UseSwaggerUI(options =>
+            //{
+            //    options.SwaggerEndpoint("/swagger/ParkOpenAPISpec/swagger.json","Park API");
+            //    //options.SwaggerEndpoint("/swagger/ParkOpenAPISpecTrails/swagger.json", "Park API Trails");
+
+            //    options.RoutePrefix = "";
+            //});
 
             app.UseRouting();
 

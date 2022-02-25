@@ -12,7 +12,8 @@ using ParkAPI.Repository.IRepository;
 
 namespace ParkAPI.Controllers
 {
-    [Route("api/Trails")]
+    //[Route("api/Trails")]
+    [Route("api/v{version:apiVersion}/trails")]
     [ApiController]
     public class TrailController : ControllerBase
     {
@@ -66,6 +67,31 @@ namespace ParkAPI.Controllers
             }
 
             var objDto = _mapper.Map<TrailDto>(obj);
+
+            return Ok(objDto);
+        }
+
+        [HttpGet("GetTrailInNationalPark/{nationalParkId:int}")]
+        [ProducesResponseType(200, Type = typeof(TrailDto))]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(404)]
+        [ProducesDefaultResponseType]
+        public IActionResult GetTrailNationalPark(int nationalParkId)
+        {
+            var objList = _trailRepository.geTrailsInNationalPark((nationalParkId));
+
+            if (objList == null)
+            {
+                return NotFound();
+            }
+
+            var objDto = new List<TrailDto>();
+
+            foreach (var obj in objList)
+            {
+                 objDto.Add(_mapper.Map<TrailDto>(obj));
+
+            }
 
             return Ok(objDto);
         }

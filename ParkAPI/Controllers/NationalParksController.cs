@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
@@ -12,7 +13,7 @@ using ParkAPI.Repository.IRepository;
 
 namespace ParkAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/v{version:apiVersion}/nationalparks")]
     [ApiController]
     public class NationalParksController : ControllerBase
     {
@@ -96,7 +97,8 @@ namespace ParkAPI.Controllers
                 return StatusCode(500,ModelState);
             }
 
-            return CreatedAtRoute("GetNationalPark", new { nationalParkId = obj.Id}, obj);
+            return CreatedAtRoute("GetNationalPark", new { version = HttpContext.GetRequestedApiVersion().ToString(),
+                nationalParkId = obj.Id}, obj);
         }
         
         [HttpPatch("{nationalParkId:int}", Name = "UpdateNationalPark")]
