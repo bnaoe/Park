@@ -6,7 +6,7 @@ using ParkWebApp.Models;
 
 namespace ParkWebApp.Repository.IRepository
 {
-    interface INationalParkRepository : IRepository<NationalPark>
+    public interface INationalParkRepository : IRepository<NationalPark>
     {
     }
 }

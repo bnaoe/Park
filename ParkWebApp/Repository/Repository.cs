@@ -47,7 +47,7 @@ namespace ParkWebApp.Repository
 
         public async Task<bool> DeleteAsync(string url, int id)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, url+id);
+            var request = new HttpRequestMessage(HttpMethod.Delete, url+id);
 
             var client = _clientFactory.CreateClient();
             
@@ -64,7 +64,7 @@ namespace ParkWebApp.Repository
 
         public async Task<IEnumerable<T>> GetAllAsync(string url)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, url);
+            var request = new HttpRequestMessage(HttpMethod.Get, url);
 
             var client = _clientFactory.CreateClient();
 
@@ -82,7 +82,7 @@ namespace ParkWebApp.Repository
 
         public async Task<T> GetAsync(string url, int id)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, url);
+            var request = new HttpRequestMessage(HttpMethod.Get, url+id);
 
             var client = _clientFactory.CreateClient();
 

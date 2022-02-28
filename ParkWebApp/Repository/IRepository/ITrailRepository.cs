@@ -6,7 +6,7 @@ using ParkWebApp.Models;
 
 namespace ParkWebApp.Repository.IRepository
 {
-    interface ITrailRepository: IRepository<Trail>
+    public interface ITrailRepository: IRepository<Trail>
     {
     }
 }
