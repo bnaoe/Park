@@ -6,21 +6,32 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using ParkWebApp.Models.ViewModel;
+using ParkWebApp.Repository.IRepository;
 
 namespace ParkWebApp.Controllers
 {
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+        private readonly INationalParkRepository _nationalParkRepository;
+        private readonly ITrailRepository _trailRepository;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger, INationalParkRepository nationalParkRepository, ITrailRepository trailRepository)
         {
             _logger = logger;
+            _nationalParkRepository = nationalParkRepository;
+            _trailRepository = trailRepository;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View();
+            IndexVM indexVm = new IndexVM()
+            {
+                NationalParkList = await _nationalParkRepository.GetAllAsync(SD.NationalParkAPIPath),
+                TrailList = await _trailRepository.GetAllAsync(SD.TrailAPIPath)
+            };
+            return View(indexVm);
         }
 
         public IActionResult Privacy()
