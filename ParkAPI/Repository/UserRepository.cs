@@ -5,6 +5,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using ParkAPI.Data;
@@ -26,8 +27,16 @@ namespace ParkAPI.Repository
 
         public bool IsUniqueUser(string username)
         {
-            throw new NotImplementedException();
 
+            var user = _db.Users.SingleOrDefault(x => x.Username == username);
+
+            // return null if user not found
+            if (user == null)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         public User Authenticate(string username, string password)
@@ -48,7 +57,8 @@ namespace ParkAPI.Repository
             {
                 Subject = new ClaimsIdentity(new Claim[]
                 {
-                    new Claim(ClaimTypes.Name, user.Id.ToString())
+                    new Claim(ClaimTypes.Name, user.Id.ToString()),
+                    new Claim(ClaimTypes.Role,user.Role)
                 }), 
                 
                 Expires = DateTime.UtcNow.AddDays(7),
@@ -68,7 +78,21 @@ namespace ParkAPI.Repository
 
         public User Register(string username, string password)
         {
-            throw new NotImplementedException();
+            var userObj = new User()
+            {
+                Username = username,
+                Password = password,
+                Role = "Admin"
+            };
+
+            _db.Users.Add(userObj);
+           
+            _db.SaveChanges();
+
+            userObj.Password = "";
+
+            return userObj;
+
         }
     }
 }
