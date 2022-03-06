@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.VisualStudio.Web.CodeGeneration.Contracts.Messaging;
 using ParkWebApp.Models;
@@ -12,6 +14,7 @@ using ParkWebApp.Repository.IRepository;
 
 namespace ParkWebApp.Controllers
 {
+    [Authorize]
     public class TrailsController : Controller
     {
         private readonly INationalParkRepository _nationalParkRepository;
@@ -30,14 +33,16 @@ namespace ParkWebApp.Controllers
 
         public async Task<IActionResult> GetAllTrail()
         {
-            return Json(new { data = await _trailRepository.GetAllAsync(SD.TrailAPIPath) });
+            return Json(new { data = await _trailRepository.GetAllAsync(SD.TrailAPIPath, HttpContext.Session.GetString("JWToken")) });
             
         }
+
+        [Authorize(Roles = "Admin")]
 
         public async Task<IActionResult> Upsert(int? id)
         {
             IEnumerable<NationalPark> nationalParksList =
-                await _nationalParkRepository.GetAllAsync(SD.NationalParkAPIPath);
+                await _nationalParkRepository.GetAllAsync(SD.NationalParkAPIPath, HttpContext.Session.GetString("JWToken"));
 
             TrailsVM trailsVM = new TrailsVM()
             {
@@ -56,7 +61,7 @@ namespace ParkWebApp.Controllers
             }
 
             // otherwise flow for update
-            trailsVM.Trail = await _trailRepository.GetAsync(SD.TrailAPIPath, id.GetValueOrDefault());
+            trailsVM.Trail = await _trailRepository.GetAsync(SD.TrailAPIPath, id.GetValueOrDefault(), HttpContext.Session.GetString("JWToken"));
             if (trailsVM.Trail == null)
             {
                 return NotFound();
@@ -74,11 +79,11 @@ namespace ParkWebApp.Controllers
                
                 if (obj.Trail.Id == 0)
                 {
-                    await _trailRepository.CreateAsync(SD.TrailAPIPath, obj.Trail);
+                    await _trailRepository.CreateAsync(SD.TrailAPIPath, obj.Trail, HttpContext.Session.GetString("JWToken"));
                 }
                 else
                 {
-                    await _trailRepository.UpdateAsync(SD.TrailAPIPath + obj.Trail.Id, obj.Trail);
+                    await _trailRepository.UpdateAsync(SD.TrailAPIPath + obj.Trail.Id, obj.Trail, HttpContext.Session.GetString("JWToken"));
 
                 }
 
@@ -87,7 +92,7 @@ namespace ParkWebApp.Controllers
             else
             {
                 IEnumerable<NationalPark> nationalParksList =
-                    await _nationalParkRepository.GetAllAsync(SD.NationalParkAPIPath);
+                    await _nationalParkRepository.GetAllAsync(SD.NationalParkAPIPath, HttpContext.Session.GetString("JWToken"));
 
                 TrailsVM trailsVM = new TrailsVM
                 {
@@ -105,7 +110,7 @@ namespace ParkWebApp.Controllers
         [HttpDelete]
         public async Task<IActionResult> Delete(int id)
         {
-            var status = await _trailRepository.DeleteAsync(SD.TrailAPIPath, id);
+            var status = await _trailRepository.DeleteAsync(SD.TrailAPIPath, id, HttpContext.Session.GetString("JWToken"));
             if (status)
             {
 
